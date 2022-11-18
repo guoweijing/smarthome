@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <!-- 页面meta -->
+
+    <meta charset="utf-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>智能家居管理系统</title>
+
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+<div id ="app">
+    <template>
+        <el-container>
+            <el-header >
+
+                <el-menu class="el-menu-demo" default-active ='1' @select="choose"
+                         router
+                         mode="horizontal"
+                         background-color="white"
+                         text-color="#222"
+                         active-text-color="red"
+                         style="min-width: 1300px">
+                    <el-menu-item index="1">首页</el-menu-item>
+                    <el-menu-item index="3" >室内布局</el-menu-item>
+                    <el-menu-item index="4"><a href="./jiaju.html?username={{username}}" >家居总览</a></el-menu-item>
+
+                    <span style="position: absolute;padding-top: 20px;right: 50%;font-size: 20px;font-weight: bold">欢迎使用</span>
+                    <el-submenu index="2" >
+                        <template slot="title">{{username}}</template>
+                        <el-menu-item index="2-1" @click.native="Showmes()">个人中心</el-menu-item>
+                        <el-menu-item index="2-2">签到</el-menu-item>
+                        <el-menu-item index="2-3" @click.native="logout()">退出</el-menu-item>
+                    </el-submenu>
+                    <el-input
+                            placeholder="快速搜索..."
+                            prefix-icon="el-icon-search"
+                            size="medium"
+                            style="width: 300px;position:absolute;margin-top: 12px;right: 5%"
+                            v-model="keywords">
+                    </el-input>
+                </el-menu>
+            </el-header>
+
+            <el-container>
+                <el-aside style="width: 300px;margin-top: 20px">
+                    <el-row class="tac">
+                        <el-col >
+                            <el-menu
+                                    default-active="1"
+                                    class="el-menu-vertical-demo"
+                                    @open="handleOpen"
+                                    @close="handleClose">
+                                <el-menu-item index="1" @click.native="getAll">
+                                    <i class="el-icon-zoom-in"></i>
+                                    <span slot="title">全部</span>
+                                </el-menu-item>
+                                <el-menu-item index="2" @click.native="selectby2">
+                                    <i class="el-icon-menu"></i>
+                                    <span slot="title">客厅</span>
+                                </el-menu-item>
+                                <el-menu-item index="3" @click.native="selectby3">
+                                    <i class="el-icon-document"></i>
+                                    <span slot="title">卧室</span>
+                                </el-menu-item>
+                                <el-menu-item index="4" @click.native="selectby4">
+                                    <i class="el-icon-setting"></i>
+                                    <span slot="title">洗手间</span>
+                                </el-menu-item>
+                                <el-menu-item index="5" @click.native="selectby5">
+                                    <i class="el-icon-bell"></i>
+                                    <span slot="title">阳台</span>
+                                </el-menu-item>
+                            </el-menu>
+                        </el-col>
+                    </el-row>
+
+                </el-aside>
+                <el-main>
+                    <div class="filter-container">
+
+                        <el-input placeholder="家居名称" v-model="name" style="width: 200px;" class="filter-item"></el-input>
+
+                        <el-button @click="getAll()" class="dalfBut">查询</el-button>
+
+                        <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+
+                    </div>
+
+                    <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+
+                        <el-table-column type="index" align="center" label="序号"></el-table-column>
+
+                        <el-table-column prop="name" label="家居名称" align="center"></el-table-column>
+
+                        <el-table-column prop="kind" label="家居类别" align="center"></el-table-column>
+
+                        <el-table-column prop="place" label="位置" align="center"></el-table-column>
+
+                        <el-table-column  label="状态" align="center">
+                            <template slot-scope="scope">
+                                <el-switch
+                                        v-model="scope.row.status"
+                                        active-color="#13ce66"
+                                        inactive-color="#ff4949"
+                                        @change="change(scope.row)">
+                                </el-switch>
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column label="操作" align="center">
+
+                            <template slot-scope="scope">
+
+                                <el-button type="primary" size="mini" :disabled="scope.row.status == false" @click="handleUpdate(scope.row)">信息</el-button>
+
+                                <el-button type="danger" size="mini" @click="handleDelete(scope.row)">删除</el-button>
+
+                            </template>
+
+                        </el-table-column>
+                    </el-table>
+                </el-main>
+            </el-container>
+
+        </el-container>
+    </template>
+
+<!--    新增表单-->
+    <div class="add-form">
+
+        <el-dialog title="新增家居" :visible.sync="dialogFormVisible">
+
+            <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+
+                <el-row>
+
+                    <el-col :span="12">
+
+                        <el-form-item label="家居名称" prop="name">
+
+                            <el-input v-model="formData.name"/>
+
+                        </el-form-item>
+
+                    </el-col>
+
+                    <el-col :span="12">
+
+                        <el-form-item label="家居类别" prop="type">
+
+                            <el-select v-model="formData.kind" placeholder="请选择">
+                                <el-option
+                                        v-for="item in options1"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+
+                        </el-form-item>
+
+                    </el-col>
+
+
+                    <el-col :span="12">
+
+                        <el-form-item label="家居位置" prop="name">
+
+                            <el-select v-model="formData.place" placeholder="请选择">
+                                <el-option
+                                        v-for="item in options"
+                                        :key="item.value"
+                                        :label="item.label"
+                                        :value="item.value">
+                                </el-option>
+                            </el-select>
+
+                        </el-form-item>
+
+                    </el-col>
+
+                </el-row>
+
+            </el-form>
+
+            <div slot="footer" class="dialog-footer">
+
+                <el-button @click="dialogFormVisible = false">取消</el-button>
+
+                <el-button type="primary" @click="handleAdd()">确定</el-button>
+
+            </div>
+
+        </el-dialog>
+
+    </div>
+
+<!--    灯泡编辑表单-->
+    <div class="add-form">
+
+        <el-dialog title="编辑检查项" :visible.sync="dialogFormVisible4Edit">
+
+            <el-form ref="dataEditForm" :model="lampData"  label-position="right" label-width="100px">
+
+                <el-row>
+
+                    <el-col :span="12">
+
+                        <el-form-item label="家具名称" prop="name">
+
+                            <el-input v-model="lampData.name"/>
+
+                        </el-form-item>
+
+                    </el-col>
+
+                    <el-col :span="12">
+
+                        <el-form-item label="亮度" prop="light">
+
+                            <el-input-number v-model="lampData.light" @change="handleChange" :min="1" :max="100" label="亮度调节"></el-input-number>
+
+                        </el-form-item>
+
+                    </el-col>
+
+                </el-row>
+
+                <el-row>
+
+
+                </el-row>
+
+            </el-form>
+
+            <div slot="footer" class="dialog-footer">
+
+                <el-button @click="dialogFormVisible4Edit = false">取消</el-button>
+
+                <el-button type="primary" @click="handleEdit()">确定</el-button>
+
+            </div>
+
+        </el-dialog>
+
+    </div>
+
+<!--    传感器信息查询-->
+    <div class="add-form">
+
+        <el-dialog title="编辑检查项" :visible.sync="dialogFormVisible4Edit1">
+
+            <el-form ref="dataEditForm" :model="sensorData"  label-position="right" label-width="100px">
+
+                <el-row>
+
+                    <el-col :span="12">
+
+                        <el-form-item label="温度" prop="temperature">
+                        {{sensorData.temperature}}
+                        </el-form-item>
+
+                    </el-col>
+
+                    <el-col :span="12">
+
+                        <el-form-item label="湿度" prop="humidity">
+                            {{sensorData.humidity}}
+                        </el-form-item>
+
+                    </el-col>
+
+                </el-row>
+
+                <el-row>
+
+
+                </el-row>
+
+            </el-form>
+
+            <div slot="footer" class="dialog-footer">
+
+                <el-button @click="dialogFormVisible4Edit1 = false">确定</el-button>
+
+            </div>
+
+        </el-dialog>
+
+    </div>
+
+
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</body>
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data(){
+            return{
+                name:'',
+                keywords:'',
+                username :location.href.substring(location.href.lastIndexOf("=")+1),
+                dataList: [],//当前页要展示的列表数据
+                formData:{},
+                lampData:{},
+                sensorData:{},
+                dialogFormVisible: false,//控制表单是否可见
+                dialogFormVisible4Edit:false,
+                dialogFormVisible4Edit1:false,
+                dialogInformationVisible:false,
+                rules: {//校验规则
+                    type: [{ required: true, message: '家居类别为必填项', trigger: 'blur' }],
+                    name: [{ required: true, message: '家居名称为必填项', trigger: 'blur' }]
+                },
+                options: [{
+                    value: 'livingroom',
+                    label: '客厅'
+                }, {
+                    value: 'bedchamber',
+                    label: '卧室'
+                }, {
+                    value: 'toilet',
+                    label: '洗手间'
+                }, {
+                    value: 'balcony',
+                    label: '阳台'
+                }
+                ],
+                options1: [{
+                    value: 'Lamp',
+                    label: '灯泡'
+                }, {
+                    value: 'Sensor',
+                    label: '传感器'
+                }, {
+                    value: 'Door',
+                    label: '门锁'
+                }
+                ]
+            };
+        },
+        created() {
+            this.getAll();
+        },
+        methods: {
+            getAll() {
+                //发送ajax请求
+                axios.get("/houses/"+this.username.toString()).then((res) => {
+                    this.dataList = res.data.data;
+                });
+            },
+            logout() {
+              document.location.href = "./login.html"
+            },
+            Showmes() {
+                this.dialogInformationVisible = true;
+
+            },
+            handleOpen(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            handleClose(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            selectby2(){
+                axios.get("/houses/"+this.username.toString()+"/livingroom").then((res) => {
+                    this.dataList = res.data.data;
+                });
+            },
+            selectby3(){
+                axios.get("/houses/"+this.username.toString()+"/bedchamber").then((res) => {
+                    this.dataList = res.data.data;
+                });
+            },
+            selectby4(){
+                axios.get("/houses/"+this.username.toString()+"/toilet").then((res) => {
+                    this.dataList = res.data.data;
+                });
+            },
+            selectby5(){
+                axios.get("/houses/"+this.username.toString()+"/balcony").then((res) => {
+                    this.dataList = res.data.data;
+                });
+            },
+            change(row){
+                this.formData.username = this.username;
+                this.formData.name = row.name;
+                this.formData.kind = row.kind;
+                this.formData.status = row.status;
+                this.formData.place = row.place;
+                axios.put("/houses",this.formData).then((res)=>{
+                    //如果操作成功，关闭弹层，显示数据
+                    if(this.formData.status === true) {
+                        this.$message.success("已开启");
+                    }
+                    else{
+                        this.$message.success("已关闭");
+                    }
+                }).finally(()=>{
+                    this.getAll();
+                    this.formData = {};
+                });
+            },
+            getByName(){
+                axios.get("/houses/"+this.name.toString()).then((res)=>{
+                    this.dataList = res.data.data;
+                });
+            },
+            resetForm() {
+                this.formData = {};
+                this.formData.username = this.username;
+            },
+            //弹出添加窗口
+            handleCreate() {
+                this.dialogFormVisible = true;
+                this.resetForm();
+            },
+
+            //弹出信息窗口
+            handleUpdate(row) {
+                axios.get("/houses/"+row.name+"/"+row.kind+"/"+this.username).then((res)=>{
+                    // console.log(res.data.data);
+                    if(res.data.code === 20041){
+                        //展示弹层，加载数据
+                        if(row.kind === "Lamp")
+                        {
+                            this.lampData = res.data.data;
+                            this.dialogFormVisible4Edit = true;
+                        }
+                        else{
+                            this.sensorData = res.data.data;
+                            this.dialogFormVisible4Edit1 =true;
+                        }
+                    }else{
+                        this.$message.error(res.data.msg);
+                    }
+                });
+            },
+
+            handleEdit(){
+                this.lampData.username = this.username;
+                axios.put("/houses/lamp",this.lampData).then((res)=>{
+                    //如果操作成功，关闭弹层，显示数据
+                    if(res.data.code === 20031){
+                        this.dialogFormVisible4Edit = false;
+                        this.$message.success("修改成功");
+                    }else if(res.data.code === 20030){
+                        this.$message.error("修改失败");
+                    }else{
+                        this.$message.error(res.data.msg);
+                    }
+                }).finally(()=>{
+                    this.getAll();
+                });
+            },
+            handleAdd () {
+                //发送ajax请求
+                axios.post("/houses",this.formData).then((res)=>{
+                    //console.log(res.data);
+                    //如果操作成功，关闭弹层，显示数据
+                    if(res.data.code == 20011){
+                        this.dialogFormVisible = false;
+                        this.$message.success("添加成功");
+                    }else if(res.data.code == 20010){
+                        this.dialogFormVisible = false;
+                        this.$message.error("添加失败");
+                    }else{
+                        this.dialogFormVisible = false;
+                        this.$message.error(res.data.msg);
+                    }
+                }).finally(()=>{
+                    this.getAll();
+                });
+            },
+            handleDelete(row) {
+                //1.弹出提示框
+                this.$confirm("此操作永久删除当前数据，是否继续？","提示",{
+                    type:'info'
+                }).then(()=>{
+                    //2.做删除业务
+                    axios.delete("/houses/"+row.name+"/"+row.kind+"/"+this.username).then((res)=>{
+                        if(res.data.code == 20021){
+                            this.$message.success("删除成功");
+                        }else{
+                            this.$message.error("删除失败");
+                        }
+                    }).finally(()=>{
+                        this.getAll();
+                    });
+                }).catch(()=>{
+                    //3.取消删除
+                    this.$message.info("取消删除操作");
+                });
+            },
+            handleChange(value) {
+                console.log(value);
+            }
+            }
+
+    })
+</script>
+<style scoped>
+    .el-menu-vertical-demo {
+        position: fixed;
+        margin-left: 50%;
+        left: -650px;
+        top: 150px;
+        width: 150px;
+    }
+</style>
+<style scoped>
+    .cover {
+        width: 115px;
+        height: 172px;
+        margin-bottom: 6px;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    img {
+        width: 115px;
+        height: 172px;
+        /*margin: 0 auto;*/
+    }
+
+    .title {
+        font-size: 14px;
+        text-align: left;
+    }
+
+    .author {
+        color: #333;
+        width: 102px;
+        font-size: 13px;
+        margin-bottom: 6px;
+        text-align: left;
+    }
+
+    .abstract {
+        display: block;
+        line-height: 17px;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    a:link, a:visited, a:focus {
+        color: #3377aa;
+    }
+</style>
+</html>

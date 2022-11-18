@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎注册</title>
+    <link href="../css/register.css" rel="stylesheet">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id ="app">
+    <div class="form-div">
+        <div class="reg-content">
+            <h1>欢迎注册</h1>
+            <span>已有帐号？</span> <a href="login.html">登录</a>
+        </div>
+            <table>
+
+                <tr>
+                    <div class="inputs">
+                        <el-input id= "username" placeholder="请输入用户名" v-model="mes.username" clearable></el-input>
+                        <el-input id= "password" placeholder="请输入密码" v-model="mes.password" show-password></el-input>
+                        <el-input id= "PhoneNumber" placeholder="请输入电话号码" v-model="mes.PhoneNumber" clearable></el-input>
+<!--                        <br>-->
+<!--                        <span id="username_err" class="err_msg" style="display: none">用户名不太受欢迎</span>-->
+                    </div>
+                </tr>
+            </table>
+
+            <div class="buttons">
+                <el-button  id ="reg_btn" type = "primary" @click="register()" class="dalfBut" size="medium" round>register</el-button>
+            </div>
+            <br class="clear">
+    </div>
+
+</div>
+
+</body>
+<script src="../js/vue.js"></script>
+
+<script src="../plugins/elementui/index.js"></script>
+
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data:{
+            mes:{}
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+        },
+        methods: {
+            register(){
+                axios.post("/users",this.mes).then((res)=>{
+                    if(res.data.data){
+                     //   document.location.href='./books.html';
+                      alert("注册成功，请去登录");
+                      document.location.href = "./login.html";
+                    }
+                    else{
+                      alert("用户名重复,重新输入");
+                      this.mes.username = "";
+                      this.mes.password = "";
+                      this.mes.PhoneNumber = "";
+                    }
+                })
+            }
+        }
+    })
+
+</script>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <link href="../css/login.css" rel="stylesheet">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+<div id="app">
+        <h1 id="loginMsg">LOGIN IN</h1>
+        <el-input id= "username" placeholder="请输入用户名" v-model="mes.username" clearable></el-input>
+        <el-input id= "password" placeholder="请输入密码" v-model="mes.password" show-password></el-input>
+        <div id="subDiv">
+            <el-button   type = "primary" @click="login()" class="dalfBut" size="medium" round>login up</el-button>
+            <el-button   type = "primary"  @click="reset()" class="dalfBut" size="medium" round>reset</el-button>
+        </div>
+        <a id ="reg" href="register.html">没有账号？点击注册</a>
+</div>
+
+</body>
+<script src="../js/vue.js"></script>
+
+<script src="../plugins/elementui/index.js"></script>
+
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data:{
+            mes:{}
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+        },
+        methods: {
+            reset(){
+                this.mes.password = '';
+                this.mes.username = '';
+            },
+            login(){
+                axios.get("/users/"+this.mes.username +"/"+this.mes.password ).then((res)=>{
+                    if(res.data.data){
+                        document.location.href='./jiaju.html?username='+this.mes.username;
+                    }
+                    else{
+                        this.reset();
+                        alert("没有这个用户或者密码错误");
+                    }
+                })
+            }
+            }
+    })
+
+</script>
+</html>

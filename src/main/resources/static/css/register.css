@@ -1,0 +1,26 @@
+.form-div {
+    background-color: rgba(255, 255, 255, 0.27);
+    border-radius: 10px;
+    border: 1px solid #aaa;
+    width: 424px;
+    margin-top: 150px;
+    align-items: center;
+    margin-left:500px;
+    padding: 30px 0 20px 0px;
+    font-size: 16px;
+    box-shadow: inset 0px 0px 10px rgba(255, 255, 255, 0.5), 0px 0px 15px rgba(75, 75, 75, 0.3);
+    text-align: left;
+}
+body {
+    background-image: url("../imgs/Desert.jpg") ;
+    text-align: center;
+}
+#reg_btn{
+    margin-left:70px; width: 285px; height: 45px; margin-top:20px;
+}
+.inputs{
+    margin-left:70px; width: 300px; height: 100px; margin-top:50px;
+}
+.reg-content{
+    margin-left:140px; width: 285px; height: 45px; margin-top:20px;
+}
